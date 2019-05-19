@@ -1,4 +1,4 @@
-#resolução do sistema linear
+#resolução do sistema linear a partir dos três pontos
 function res = LS(p1, p2, p3)
   a = [p1(1)^2, p1(1), 1; p2(1)^2, p2(1), 1; p3(1)^2, p3(1), 1];
   b = [p1(2); p2(2); p3(2)];
