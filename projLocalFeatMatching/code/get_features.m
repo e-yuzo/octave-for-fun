@@ -18,6 +18,7 @@
 
 function [features] = get_features(image, x, y, descriptor_window_image_width)
 
+
 % To start with, you might want to simply use normalized patches as your
 % local feature. This is very simple to code and works OK. However, to get
 % full credit you will need to implement the more effective SIFT descriptor
@@ -54,17 +55,111 @@ function [features] = get_features(image, x, y, descriptor_window_image_width)
 % Another simple trick which can help is to raise each element of the final
 % feature vector to some power that is less than one.
 
-%Placeholder that you can delete. Empty features.
+window = zeros(descriptor_window_image_width, descriptor_window_image_width, 'single');
+
+x = int32(x);
+y = int32(y);
+
+x_size = size(x, 1);
+y_size = size(y, 1);
+
+image = im2uint8(image); %check the validity of this line
+
+blurred_image = blur(image); 
+
+window_cell_magnit = cell(x_size, 1);
+window_cell_orient = cell(x_size, 1);
+
+width = descriptor_window_image_width / 2; #8
+
+aux = x;
+x = y;
+y = aux;
+
+%creating 16x16 window for each point
+for i = 1:x_size %preenche matriz para cada coordenada
+  sub_image = blurred_image( (x(i)-width-1) : (x(i)+width), (y(i)-width-1) : (y(i)+width) ); #18x18 because of the way mags and degrees are calculated
+  %sub_image = blurred_image( (y(i)-width-1) : (y(i)+width), (x(i)-width-1) : (x(i)+width) );
+  [mag, deg] = calculate_gradient(sub_image, x, y); %retorna duas matrizes 16x16
+  window_cell_magnit{i} = mag;
+  window_cell_orient{i} = deg;
+endfor
+#size(window_cell_magnit{1})
+
+%creating 128 dimensional vector: 8 bin histogram for each 4x4 window (get submatrix of window_cell_*)
+%bins = zeros(16, 8, 'single'); %each line has one bin for]
+%list_of_windows and features have the same 
 features = zeros(size(x,1), 128, 'single');
+list_of_windows = cell(1, x_size); %uma window para cada coordenada
+for i = 1:x_size
+  extra_index = 1;
+  cell_magnit = window_cell_magnit{i}; %16x16 matrix magnitudes
+  cell_orient = window_cell_orient{i}; %16x16 matrix orientations in radians
+  list_of_bins = cell(4, 4);
+  for r = 0:3 %processa uma matriz 16x16
+    for c = 0:3
+      sub_m = cell_magnit( ((r*4)+1) : ((r*4)+4), ((c*4)+1) : ((c*4)+4) );
+      sub_o = cell_orient( ((r*4)+1) : ((r*4)+4), ((c*4)+1) : ((c*4)+4) );
+      hist_bin_8 = zeros(1, 8, 'single');
+      for j = 1:4
+        for k = 1:4
+          bin_pos = getBin( sub_o(j, k) );
+          hist_bin_8(1, bin_pos+1) = hist_bin_8(1, bin_pos+1) + sub_m(j, k);
+        endfor %k
+      endfor %j
+      list_of_bins{r+1, c+1} = hist_bin_8;
+      
+      %this 'for' is just used to populate matrix 'features'
+      for lol = 1:8
+        features(i, extra_index) = hist_bin_8(1, lol);
+        extra_index = extra_index + 1;
+      endfor
+      
+    endfor %c
+  endfor %r
+  list_of_windows{1, i} = list_of_bins;
+endfor %i
 
+%unit length normalizer
+for i = i:x_size
+  vector_128 = features(i, :);
+  normalized_v = normalizeVector(vector_128);
+  features(i, :) = normalized_v;
+endfor
 
+%TODO: apply circular Gaussian on each; Each feature should be normalized to unit length
+endfunction
 
-end
+%returns magnitude and orientations for coordinates (x, y)
+%sub_image is a 18x18 image around point (x, y)
+function [mag, deg] = calculate_gradient(sub_image, x, y)
+  [rows, cols] = size(sub_image); #18x18 matrix
+  mag = zeros(16, 16, 'single');
+  deg = zeros(16, 16, 'single');
+  for i = 2:(rows-1)
+    for j = 2:(cols-1)
+      #gradient magnitude calculation
+      first_m = ( sub_image(i+1, j) - sub_image(i-1, j) ) ^ 2;
+      secon_m = ( sub_image(i, j+1) - sub_image(i, j-1) ) ^ 2;
+      mag(i-1, j-1) = sqrt(first_m + secon_m);
+      
+      #gradient orientation in radians calculation
+      first_o = sub_image(i, j+1) - sub_image(i, j-1);
+      secon_o = sub_image(i+1, j) - sub_image(i-1, j);
+      deg(i-1, j-1) = atan2(first_o, secon_o);
+    endfor
+  endfor
+endfunction
 
+%returns blurred image
+function [blurred_image] = blur( image )
+  apply = imsmooth(image, "Gaussian", 3, sigma=1.5);
+  blurred_image = (apply);
+  imwrite(blurred_image, "gauss.jpg");
+endfunction
 
-
-
-
-
-
-
+%returns the position of the value in the bin
+function [bin_position] = getBin( radians )
+  deg = rad2deg(radians);
+  bin_position = floor(mod(deg, 8));
+endfunction
