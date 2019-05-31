@@ -1,6 +1,12 @@
 pkg load image;
 pkg load geometry;
 
+
+%duvidas: degrees higher than 90
+%TESTAR NORMALIZAÇÂO
+%CORRIGIR FAZENDO O SOBEL
+         %soma simples das magnitudes
+         %ver se o calculo da distancia com ratio test ta correto
 function accuracy = proj3()
 % Local Feature Stencil Code
 % Written by James Hays for CS 143 @ Brown / CS 4476/6476 @ Georgia Tech
@@ -14,7 +20,8 @@ function accuracy = proj3()
 
 
 %% Define image pairs
-imagePair = 1;
+imagePair = 2;
+eval_file = '';
 if imagePair == 1
     % Notre Dame de Paris
     % Easiest
@@ -47,7 +54,7 @@ image2g = rgb2gray(image2);
 
 %% Compute correspondences
 % YOUR WORK IN HERE!
-[x1, y1, x2, y2, matches, confidences] = compute_correspondences( image1g, image2g, eval_file, scale_factor );
+[x1, y1, x2, y2, matches, confidences] = compute_correspondences( image1g, image2g, eval_file, scale_factor);
 
 
 %% Visualization
@@ -84,4 +91,4 @@ num_pts_to_evaluate = size(matches,1);
                         y2(matches(1:num_pts_to_evaluate,2)), ...
                         true ); % Visualize/write result
 
-endfunction
+end

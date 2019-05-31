@@ -16,7 +16,6 @@ descriptor_window_image_width = 16;
 % !!! You will need to implement get_interest_points. !!!
 %[x1, y1] = get_interest_points(image1, descriptor_window_image_width);
 %[x2, y2] = get_interest_points(image2, descriptor_window_image_width);
-
 [x1, y1, x2, y2] = cheat_interest_points(eval_file, scale_factor);
 
 % % Use cheat_interest_points only for development and debugging!

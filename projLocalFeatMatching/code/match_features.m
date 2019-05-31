@@ -45,7 +45,7 @@ for h = 1:feat1_size
   [values, indexes] = sort(list_of_distances, 'ascend');
   index_match2 = indexes(1); %index containing the lowest value
   
-  confidences(h) = 1 - ( getRatio(list_of_distances(1), list_of_distances(2)) );
+  confidences(h) = ( getRatio(values(1), values(2)) );
   
   matches(h, 1) = index_match1;
   matches(h, 2) = index_match2;
@@ -60,7 +60,7 @@ endfor%h
 % Sort the matches so that the most confident onces are at the top of the
 % list. You should not delete this, so that the evaluation
 % functions can be run on the top matches easily.
-[confidences, ind] = sort(confidences, 'descend');
+[confidences, ind] = sort(confidences, 'ascend');
 matches = matches(ind,:);
 endfunction
 

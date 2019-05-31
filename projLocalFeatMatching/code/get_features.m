@@ -78,9 +78,12 @@ y = aux;
 
 %creating 16x16 window for each point
 for i = 1:x_size %preenche matriz para cada coordenada
-  sub_image = blurred_image( (x(i)-width-1) : (x(i)+width), (y(i)-width-1) : (y(i)+width) ); #18x18 because of the way mags and degrees are calculated
+  sub_image = blurred_image( (x(i)-width) : (x(i)+width+1), (y(i)-width) : (y(i)+width+1) ); #18x18 because of the way mags and degrees are calculated
   %sub_image = blurred_image( (y(i)-width-1) : (y(i)+width), (x(i)-width-1) : (x(i)+width) );
+  
   [mag, deg] = calculate_gradient(sub_image, x, y); %retorna duas matrizes 16x16
+  %[mag,deg]
+  
   window_cell_magnit{i} = mag;
   window_cell_orient{i} = deg;
 endfor
@@ -120,10 +123,14 @@ for i = 1:x_size
   list_of_windows{1, i} = list_of_bins;
 endfor %i
 
-%unit length normalizer
+%unit length normalizer with threshold of 0.8
 for i = i:x_size
   vector_128 = features(i, :);
   normalized_v = normalizeVector(vector_128);
+  
+  indexes = find( abs(normalized_v) > 0.2 ); %TESTAR ISSO DEPOIS
+  normalized_v(indexes) = 0.2;
+  normalized_v = normalizeVector(normalized_v);
   features(i, :) = normalized_v;
 endfor
 
@@ -139,6 +146,7 @@ function [mag, deg] = calculate_gradient(sub_image, x, y)
   for i = 2:(rows-1)
     for j = 2:(cols-1)
       #gradient magnitude calculation
+      
       first_m = ( sub_image(i+1, j) - sub_image(i-1, j) ) ^ 2;
       secon_m = ( sub_image(i, j+1) - sub_image(i, j-1) ) ^ 2;
       mag(i-1, j-1) = sqrt(first_m + secon_m);
@@ -146,20 +154,45 @@ function [mag, deg] = calculate_gradient(sub_image, x, y)
       #gradient orientation in radians calculation
       first_o = sub_image(i, j+1) - sub_image(i, j-1);
       secon_o = sub_image(i+1, j) - sub_image(i-1, j);
-      deg(i-1, j-1) = atan2(first_o, secon_o);
+      deg(i-1, j-1) = atan2(secon_o, first_o);
     endfor
   endfor
+  deg
+  %[grad, orient] = calcula_gradient_direction(sub_image)
 endfunction
 
 %returns blurred image
 function [blurred_image] = blur( image )
   apply = imsmooth(image, "Gaussian", 3, sigma=1.5);
   blurred_image = (apply);
-  imwrite(blurred_image, "gauss.jpg");
 endfunction
 
 %returns the position of the value in the bin
-function [bin_position] = getBin( radians )
-  deg = rad2deg(radians);
-  bin_position = floor(mod(deg, 8));
+function [bin_position] = getBin( rad )
+  deg = rad2deg(rad);
+  deg = mod(deg, 360);
+  if deg < 45
+    bin_position = 1;
+  elseif deg < 90
+    bin_position = 2;
+  elseif deg < 135
+    bin_position = 3;
+  elseif deg < 180
+    bin_position = 4;
+  elseif deg < 225
+    bin_position = 5;
+  elseif deg < 270
+    bin_position = 6;
+  elseif deg < 315
+    bin_position = 7;
+  elseif deg < 360
+    bin_position = 8;
+  endif
+endfunction
+
+%returns disk filtered
+function [blurred_image] = diskFilter( image )
+  apply = imsmooth(image, "Disk", 3, sigma=1.5);
+  blurred_image = (apply);
+  imwrite(blurred_image, "gauss.jpg");
 endfunction

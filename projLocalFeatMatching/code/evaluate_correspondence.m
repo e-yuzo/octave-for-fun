@@ -83,7 +83,7 @@ if vis
     newImg = zeros(Height, Width,numColors);
     newImg(1:size(imgA,1),1:size(imgA,2),:) = imgA;
     newImg(1:size(imgB,1),1+size(imgA,2):end,:) = imgB;
-    imshow(newImg, 'Border', 'tight')
+    imshow(newImg)
     shiftX = size(imgA,2);
     hold on;
 end
