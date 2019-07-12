@@ -1,6 +1,6 @@
 % Written by Henry Hu and James Hays for CSCI 1430 @ Brown and CS 4495/6476 @ Georgia Tech
 
-% This script 
+% This script
 % (1) Loads and resizes images
 % (2) Calls VLFeat's SIFT matching functions
 % (3) Estimates the fundamental matrix using RANSAC 
@@ -13,10 +13,10 @@ close all
 % This Mount Rushmore pair is easy. Most of the initial matches are
 % correct. The base fundamental matrix estimation without coordinate
 % normalization will work fine with RANSAC.
-pic_a = imread('../data/Mount Rushmore/9193029855_2c85a50e91_o.jpg');
-pic_b = imread('../data/Mount Rushmore/7433804322_06c5620f13_o.jpg');
-pic_a = imresize(pic_a, 0.25, 'bilinear');
-pic_b = imresize(pic_b, 0.37, 'bilinear');
+% pic_a = imread('../data/Mount Rushmore/9193029855_2c85a50e91_o.jpg');
+% pic_b = imread('../data/Mount Rushmore/7433804322_06c5620f13_o.jpg');
+% pic_a = imresize(pic_a, 0.25, 'bilinear');
+% pic_b = imresize(pic_b, 0.37, 'bilinear');
 
 % % The Notre Dame pair is difficult because the keypoints are largely on the
 % % same plane. Still, even an inaccurate fundamental matrix can do a pretty
@@ -37,17 +37,17 @@ pic_b = imresize(pic_b, 0.37, 'bilinear');
 
 % % This pair of photos has a clearer relationship between the cameras (they
 % % are converging and have a wide baseine between them) so the estimated
-% % fundamental matrix is less ambiguous.
+% % fundamental matrix is less ambiguous. 0.001 5000
 % pic_a = imread('../data/Woodruff Dorm/wood1.jpg');
 % pic_b = imread('../data/Woodruff Dorm/wood2.jpg');
 % pic_a = imresize(pic_a, 0.65, 'bilinear');
 % pic_b = imresize(pic_b, 0.65, 'bilinear');
 
 % % The Sydney Opera Housea
-% pic_a = imread('../data/Opera House/frame24.jpg');
-% pic_b = imread('../data/Opera House/frame27.jpg');
-% pic_a = imresize(pic_a, 0.25, 'bilinear');
-% pic_b = imresize(pic_b, 0.30, 'bilinear');
+pic_a = imread('../data/Opera House/frame24.jpg');
+pic_b = imread('../data/Opera House/frame27.jpg');
+pic_a = imresize(pic_a, 0.25, 'bilinear');
+pic_b = imresize(pic_b, 0.30, 'bilinear');
 
 % Finds matching points in the two images using VLFeat's implementation of
 % SIFT (basically project 3). There can still be many spurious matches,

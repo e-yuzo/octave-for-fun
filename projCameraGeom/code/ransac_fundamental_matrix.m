@@ -22,11 +22,11 @@
 
 function [ Best_Fmatrix, inliers_a, inliers_b ] = ransac_fundamental_matrix( matches_a, matches_b )
 %   número máximo de iterações
-    ransacIterations = 1000; %test this
+    ransacIterations = 500; %test this
 %   quantidade de pontos selecionados
     numberOfPoints = 8;
 %   threshold entre inliers e outliers
-    threshold = 0.03; %test this
+    threshold = 0.015; %test this
 %   fundamental matrix com maior número de inliers
     Best_Fmatrix = zeros( 3, 3 );
 %   tamanho das matrizes que possuem os pontos
@@ -36,7 +36,6 @@ function [ Best_Fmatrix, inliers_a, inliers_b ] = ransac_fundamental_matrix( mat
     presentInliers = 0;
     A_8by2 = zeros( 8, 2 );
     B_8by2 = zeros( 8, 2 );
-    %execução de 1000 iterações
     i = 1;
     while i <= ransacIterations
 %       seleção de 8 índices aleatórios
@@ -56,10 +55,9 @@ function [ Best_Fmatrix, inliers_a, inliers_b ] = ransac_fundamental_matrix( mat
         
         for k = 1:matches_aSize
             %cálculo da distância para matches_a e matches_b
-            A = [ matches_a(k, :)'; 1 ]; %3x1
+            A = [ matches_a(k, :), 1 ]'; %3x1
             B = [ matches_b(k, :), 1 ]; %1x3
             distance(k) = B * futureFundamentalMatrix * A;
-%             disp(distance);
         end
         
 %       identificar os indexes dos inliers considerando o threshold definido
@@ -67,22 +65,18 @@ function [ Best_Fmatrix, inliers_a, inliers_b ] = ransac_fundamental_matrix( mat
 %       quantidade de inliers
         futureInliers = size( idxes, 1 );
 %       atualização dos valores
-
         if ( futureInliers > presentInliers )
             presentInliers = futureInliers;
             Best_Fmatrix = futureFundamentalMatrix;
-            %Best_Idxes = idxes;
+            Best_Idxes = idxes;
 %           distances from the Best_Fmatrix
             distances = distance;
         end
         
         i = i + 1;
     end
-    
 %   seleção de 30 índices
-    [~, best_idxes]  = sort( abs( distances ), 'ascend' );
-%   disp(distances)
-%   disp(best_idxes)
-    inliers_a = matches_a( best_idxes( 1:30 ), : );
-    inliers_b = matches_b( best_idxes( 1:30 ), : );
+    %[~, best_idxes]  = sort( abs( distances ), 'ascend' );
+    inliers_a = matches_a( Best_Idxes, : );
+    inliers_b = matches_b( Best_Idxes, : );
 end

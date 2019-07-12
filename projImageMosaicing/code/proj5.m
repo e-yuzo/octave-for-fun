@@ -12,8 +12,10 @@ randFlag = false;        % Whether images in random order
 verbose  = true;         % Whether show stitching details
 
 % dataset = "lab";
- %dataset = "church";
-dataset = "balcony";
+%  dataset = "church";
+% dataset = "balcony";
+% dataset = "maHouse";
+dataset = "front";
 
 % Path
 p         = mfilename('fullpath');

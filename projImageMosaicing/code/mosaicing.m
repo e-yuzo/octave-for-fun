@@ -14,7 +14,9 @@ end
 
 % Parameters
 max_pts       = 400;
-threshRANSAC  = 3;
+threshRANSAC  = 7.7;
+%front: 5
+%0.007 rest
 blendFrac     = 0.5;
 geometricBlur = false;
 verbose       = true;

@@ -24,7 +24,7 @@ N = size(y1, 1);
 %% PUT YOUR CODE HERE 
 
 %   número máximo de iterações
-    ransacIterations = 1000; %test this
+    ransacIterations = 5000;
 %   quantidade de pontos selecionados
     numberOfPoints = 4;
 %   fundamental matrix com maior número de inliers
@@ -36,73 +36,51 @@ N = size(y1, 1);
     presentInliers = 0;
     A_4by2 = zeros( 4, 2 );
     B_4by2 = zeros( 4, 2 );
-    %execução de 1000 iterações
     i = 1;
+%   função que calcula a distância
     ssd = @(x, y) sum((x-y).^2);
+%   execução de 1000 iterações
     while i <= ransacIterations
 %       seleção de 8 índices aleatórios
     	randSample = randsample( matches_size, numberOfPoints );
-%       seleção dos 8 pontos dos matches_a e matches_b
-%         for j=1:numberOfPoints
-%             %8x2 matrix
-%             A_4by2( j, : ) = matches_a( randSample(j), : );
-%             B_4by2( j, : ) = matches_b( randSample(j), : );
-%         end
-        
 %       3x3 fundamental matrix estimation
-        matrix = est_homography( x2(randSample), y2(randSample), x1(randSample), y1(randSample) );
-        %list of inlying distances
+        matrix = est_homography( x1(randSample), y1(randSample), x2(randSample), y2(randSample) );
+%       list of distances (armazena as distâncias)
         distance = zeros( matches_size, 1 );
-%         homoCoord1 = [x1, y1, ones(matches_size, 1)];
-%         homoCoord2 = [x2, y2];
-%         
-%         transformedPoints = (homoCoord1 * matrix)';
-%         transformedPoints = transformedPoints(1:2,:)./repmat(transformedPoints(3,:),2,1);
-%         distance = sum((transformedPoints-homoCoord2(:,1:2)').^2,1)';
-%       
-        matches_a = [x1, y1];
-        matches_b = [x2, y2];
+%       calcula a posição (x, y) da imagem original para a posição (X, Y) da
+%       imagem destino
+        [x, y] = apply_homography(matrix, x2, y2);
+%       calcula as distâncias utilizando a função ssd definida
         for k = 1:matches_size
-            %cálculo da distância para matches_a e matches_b
-%             A = [ matches_a(k, :)'; 1 ]; %3x1
-%             B = [ matches_b(k, :), 1 ]; %1x3
-%             distance(k) = B * matrix * A;
-% %             disp(distance);
-            t_xy = matrix*[x1(k), y1(k), 1]';
-            t_xy = t_xy/t_xy(end);
-
-            distance(k) = ssd([x2(k), y2(k), 1]', t_xy);
+            a1 = [x(k); y(k)];
+            a2 = [x1(k); y1(k)];
+            distance(k) = ssd(a1, a2);
         end
-        %disp(distance);
 %       identificar os indexes dos inliers considerando o threshold definido
         idxes = find( abs(distance) <= thresh );
 %       quantidade de inliers
         futureInliers = size( idxes, 1 );
 %       atualização dos valores
-
         if ( futureInliers > presentInliers )
             presentInliers = futureInliers;
             MATRIX = matrix;
             IDXES = idxes;
-%           distances from the Best_Fmatrix
+%           distances: usando o MATRIX
             distances = distance;
         end
         
         i = i + 1;
     end
-    disp(thresh);
-    
-%   seleção de 30 índices
-    [~, best_idxes]  = sort( abs( distances ), 'ascend' );
-%   disp(distances)
-%   disp(best_idxes)
-%     inliers_a = matches_a( best_idxes( 1:30 ), : );
-%     inliers_b = matches_b( best_idxes( 1:30 ), : );
+% recalcular Homography utilizando todos os inliers
+MATRIX2 = est_homography( x1(IDXES), y1(IDXES), x2(IDXES), y2(IDXES) );
 
-%%
+inlier_ind = IDXES;
+disp(size(inlier_ind, 1));
+H = MATRIX2;
 
-inlier_ind = best_idxes;
-H = MATRIX;
+%% END OF CODE
+
+
 
 %% PLACEHOLDER CODE TO PLOT ONLY THE INLIERS WHEN YOU WERE DONE
 %inlier_ind = 1:min(size(y1,1),size(y2,1));
